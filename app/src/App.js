@@ -1,7 +1,9 @@
-import { ethers } from 'ethers';
-import { useEffect, useState } from 'react';
-import deploy from './deploy';
-import Escrow from './Escrow';
+import { ethers } from "ethers";
+import { useEffect, useState } from "react";
+import deploy from "./deploy";
+import Escrow from "./Escrow";
+import { EthInput } from "./components/eth-input";
+import { AddressInput } from "./components/address-input";
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -15,9 +17,13 @@ function App() {
   const [account, setAccount] = useState();
   const [signer, setSigner] = useState();
 
+  const [wei, setWei] = useState("0");
+  const [beneficiary, setBeneficiary] = useState("");
+  const [arbiter, setArbiter] = useState("");
+
   useEffect(() => {
     async function getAccounts() {
-      const accounts = await provider.send('eth_requestAccounts', []);
+      const accounts = await provider.send("eth_requestAccounts", []);
 
       setAccount(accounts[0]);
       setSigner(provider.getSigner());
@@ -27,21 +33,17 @@ function App() {
   }, [account]);
 
   async function newContract() {
-    const beneficiary = document.getElementById('beneficiary').value;
-    const arbiter = document.getElementById('arbiter').value;
-    const value = ethers.BigNumber.from(document.getElementById('wei').value);
-    const escrowContract = await deploy(signer, arbiter, beneficiary, value);
-
+    const escrowContract = await deploy(signer, arbiter, beneficiary, wei);
 
     const escrow = {
       address: escrowContract.address,
       arbiter,
       beneficiary,
-      value: value.toString(),
+      value: wei,
       handleApprove: async () => {
-        escrowContract.on('Approved', () => {
+        escrowContract.on("Approved", () => {
           document.getElementById(escrowContract.address).className =
-            'complete';
+            "complete";
           document.getElementById(escrowContract.address).innerText =
             "✓ It's been approved!";
         });
@@ -57,20 +59,26 @@ function App() {
     <>
       <div className="contract">
         <h1> New Contract </h1>
-        <label>
-          Arbiter Address
-          <input type="text" id="arbiter" />
-        </label>
 
-        <label>
-          Beneficiary Address
-          <input type="text" id="beneficiary" />
-        </label>
+        <section>
+          <div>
+            <h2>Current Account (Depositor)</h2>
+            <p>{account}</p>
+          </div>
+        </section>
 
-        <label>
-          Deposit Amount (in Wei)
-          <input type="text" id="wei" />
-        </label>
+        <AddressInput
+          value={arbiter}
+          onChange={setArbiter}
+          label="Arbiter Address"
+        />
+        <AddressInput
+          value={beneficiary}
+          onChange={setBeneficiary}
+          label="Beneficiary Address"
+        />
+
+        <EthInput value={wei} onChange={setWei} />
 
         <div
           className="button"
