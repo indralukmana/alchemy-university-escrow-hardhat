@@ -6,6 +6,11 @@ export function EthInput({ value, onChange }) {
   const handleInput = (e) => {
     const { value } = e.target;
 
+    // check if the value is a valid number
+    if (isNaN(value)) {
+      return;
+    }
+
     const weiValue = ethers.utils.parseEther(value);
     onChange(weiValue);
   };
