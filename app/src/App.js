@@ -59,7 +59,30 @@ function App() {
     getAccounts();
   }, [account]);
 
+  function isValidETHAddress(address) {
+    // Regex to check a valid Ethereum address
+    let regex = /^(0x)?[0-9a-fA-F]{40}$/;
+
+    // If address is empty, return false
+    if (!address) {
+      return false;
+    }
+
+    // Return true if the address matches the regex
+    return regex.test(address);
+  }
+
   async function newContract() {
+    if (!isValidETHAddress(arbiter)) {
+      alert("Invalid Arbiter Address");
+      return;
+    }
+
+    if (!isValidETHAddress(beneficiary)) {
+      alert("Invalid Beneficiary Address");
+      return;
+    }
+
     const escrowContract = await deploy(signer, arbiter, beneficiary, wei);
 
     const escrow = {
