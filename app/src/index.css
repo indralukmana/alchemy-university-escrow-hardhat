@@ -1,10 +1,27 @@
 body {
   background-color: #eee;
   display: flex;
-  font-family: 'Muli', sans-serif;
+  font-family: "Muli", sans-serif;
 }
 
-.contract, .existing-contracts {
+#root {
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-container {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-gap: 20px;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.contract,
+.existing-contracts {
   margin: 20px;
   display: inline-block;
   padding: 40px;

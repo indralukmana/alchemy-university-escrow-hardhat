@@ -83,7 +83,7 @@ function App() {
   }
 
   return (
-    <>
+    <div className="main-container">
       <div className="contract">
         <h1> New Contract </h1>
 
@@ -129,7 +129,7 @@ function App() {
           })}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
