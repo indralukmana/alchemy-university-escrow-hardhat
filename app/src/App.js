@@ -5,8 +5,6 @@ import Escrow from "./Escrow";
 import { EthInput } from "./components/eth-input";
 import { AddressInput } from "./components/address-input";
 
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-
 export async function approve(escrowContract, signer) {
   const approveTxn = await escrowContract.connect(signer).approve();
   await approveTxn.wait();
@@ -14,8 +12,8 @@ export async function approve(escrowContract, signer) {
 
 function App() {
   const [escrows, setEscrows] = useState([]);
-  const [account, setAccount] = useState("");
-  const [signer, setSigner] = useState();
+  const [signer, setSigner] = useState(null);
+  const [signerAddress, setSignerAddress] = useState("");
 
   const [wei, setWei] = useState("0");
   const [beneficiary, setBeneficiary] = useState("");
@@ -23,13 +21,27 @@ function App() {
 
   useEffect(() => {
     const handleAccountsChange = async () => {
-      const accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-      if (accounts.length > 0) {
-        setAccount(accounts[0]); // Update the current account
-      } else {
-        setAccount(""); // Clear the current account if none is available
+      try {
+        const account = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+
+        if (account.length > 0) {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+          const signer = provider.getSigner();
+
+          setSigner(signer);
+          const address = await signer.getAddress();
+
+          setSignerAddress(address);
+        } else {
+          setSigner(null);
+          setSignerAddress("");
+        }
+      } catch (e) {
+        console.log("Error getting accounts");
+        console.log(e);
       }
     };
 
@@ -44,20 +56,6 @@ function App() {
       window.ethereum.removeListener("accountsChanged", handleAccountsChange);
     };
   }, []); // Empty dependency array means this effect runs once on mount
-
-  useEffect(() => {
-    async function getAccounts() {
-      try {
-        const accounts = await provider.send("eth_requestAccounts", []);
-        setAccount(accounts[0]);
-        setSigner(provider.getSigner());
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    getAccounts();
-  }, [account]);
 
   function isValidETHAddress(address) {
     // Regex to check a valid Ethereum address
@@ -105,6 +103,30 @@ function App() {
     setEscrows([...escrows, escrow]);
   }
 
+  async function handleLogout() {
+    try {
+      await window.ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
+      });
+      setSigner(null);
+      setSignerAddress("");
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function handleLogin() {
+    try {
+      await window.ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
+      });
+    } catch (error) {
+      console.log("login error", error);
+    }
+  }
+
   return (
     <div className="main-container">
       <div className="contract">
@@ -113,7 +135,17 @@ function App() {
         <section>
           <div>
             <h2>Current Account (Depositor)</h2>
-            <p>{account}</p>
+            <p>{signerAddress}</p>
+            {signerAddress && (
+              <div className="button" onClick={handleLogout}>
+                Logout
+              </div>
+            )}
+            {!signerAddress && (
+              <div className="button" onClick={handleLogin}>
+                Login
+              </div>
+            )}
           </div>
         </section>
 
