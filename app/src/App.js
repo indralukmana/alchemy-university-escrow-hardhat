@@ -23,10 +23,13 @@ function App() {
 
   useEffect(() => {
     async function getAccounts() {
-      const accounts = await provider.send("eth_requestAccounts", []);
-
-      setAccount(accounts[0]);
-      setSigner(provider.getSigner());
+      try {
+        const accounts = await provider.send("eth_requestAccounts", []);
+        setAccount(accounts[0]);
+        setSigner(provider.getSigner());
+      } catch (e) {
+        console.log(e);
+      }
     }
 
     getAccounts();
