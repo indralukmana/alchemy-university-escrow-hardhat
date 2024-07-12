@@ -14,17 +14,14 @@ export async function approve(escrowContract, signer) {
   }
 }
 
-const SAMPLE_ARBITER = "0xAcC59A8A761BA374aC1EB63D074Fb4c625340E05";
-const SAMPLE_BENEFICIARY = "0x0Aa46F29c40CF726B400B7f0660A356eEDf22188";
-
 function App() {
   const [escrows, setEscrows] = useState([]);
   const [signer, setSigner] = useState(null);
   const [signerAddress, setSignerAddress] = useState("");
 
   const [wei, setWei] = useState(ethers.utils.parseEther("0.001"));
-  const [beneficiary, setBeneficiary] = useState(SAMPLE_BENEFICIARY);
-  const [arbiter, setArbiter] = useState(SAMPLE_ARBITER);
+  const [beneficiary, setBeneficiary] = useState("");
+  const [arbiter, setArbiter] = useState("");
 
   useEffect(() => {
     const handleAccountsChange = async () => {
