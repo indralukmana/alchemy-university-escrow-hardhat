@@ -6,18 +6,25 @@ import { EthInput } from "./components/eth-input";
 import { AddressInput } from "./components/address-input";
 
 export async function approve(escrowContract, signer) {
-  const approveTxn = await escrowContract.connect(signer).approve();
-  await approveTxn.wait();
+  try {
+    const approveTxn = await escrowContract.connect(signer).approve();
+    await approveTxn.wait();
+  } catch (error) {
+    alert("Error approving contract " + error.message);
+  }
 }
+
+const SAMPLE_ARBITER = "0xAcC59A8A761BA374aC1EB63D074Fb4c625340E05";
+const SAMPLE_BENEFICIARY = "0x0Aa46F29c40CF726B400B7f0660A356eEDf22188";
 
 function App() {
   const [escrows, setEscrows] = useState([]);
   const [signer, setSigner] = useState(null);
   const [signerAddress, setSignerAddress] = useState("");
 
-  const [wei, setWei] = useState("0");
-  const [beneficiary, setBeneficiary] = useState("");
-  const [arbiter, setArbiter] = useState("");
+  const [wei, setWei] = useState(ethers.utils.parseEther("0.001"));
+  const [beneficiary, setBeneficiary] = useState(SAMPLE_BENEFICIARY);
+  const [arbiter, setArbiter] = useState(SAMPLE_ARBITER);
 
   useEffect(() => {
     const handleAccountsChange = async () => {
@@ -81,26 +88,34 @@ function App() {
       return;
     }
 
-    const escrowContract = await deploy(signer, arbiter, beneficiary, wei);
+    try {
+      const escrowContract = await deploy(signer, arbiter, beneficiary, wei);
 
-    const escrow = {
-      address: escrowContract.address,
-      arbiter,
-      beneficiary,
-      value: wei,
-      handleApprove: async () => {
-        escrowContract.on("Approved", () => {
-          document.getElementById(escrowContract.address).className =
-            "complete";
-          document.getElementById(escrowContract.address).innerText =
-            "✓ It's been approved!";
-        });
+      const escrow = {
+        address: escrowContract.address,
+        arbiter,
+        beneficiary,
+        value: wei,
+        handleApprove: async () => {
+          try {
+            escrowContract.on("Approved", () => {
+              document.getElementById(escrowContract.address).className =
+                "complete";
+              document.getElementById(escrowContract.address).innerText =
+                "✓ It's been approved!";
+            });
 
-        await approve(escrowContract, signer);
-      },
-    };
+            await approve(escrowContract, signer);
+          } catch (error) {
+            alert("Error approving contract " + error.message);
+          }
+        },
+      };
 
-    setEscrows([...escrows, escrow]);
+      setEscrows([...escrows, escrow]);
+    } catch (error) {
+      alert("Error deploying contract, " + error.message);
+    }
   }
 
   async function handleLogout() {
@@ -134,7 +149,7 @@ function App() {
 
         <section>
           <div>
-            <h2>Current Account (Depositor)</h2>
+            <h2>Current Account (Signer)</h2>
             <p>{signerAddress}</p>
             {signerAddress && (
               <div className="button" onClick={handleLogout}>
