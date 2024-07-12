@@ -14,12 +14,36 @@ export async function approve(escrowContract, signer) {
 
 function App() {
   const [escrows, setEscrows] = useState([]);
-  const [account, setAccount] = useState();
+  const [account, setAccount] = useState("");
   const [signer, setSigner] = useState();
 
   const [wei, setWei] = useState("0");
   const [beneficiary, setBeneficiary] = useState("");
   const [arbiter, setArbiter] = useState("");
+
+  useEffect(() => {
+    const handleAccountsChange = async () => {
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+      if (accounts.length > 0) {
+        setAccount(accounts[0]); // Update the current account
+      } else {
+        setAccount(""); // Clear the current account if none is available
+      }
+    };
+
+    // Check for account changes right away
+    handleAccountsChange();
+
+    // Setup the event listener
+    window.ethereum.on("accountsChanged", handleAccountsChange);
+
+    // Cleanup the event listener on unmount
+    return () => {
+      window.ethereum.removeListener("accountsChanged", handleAccountsChange);
+    };
+  }, []); // Empty dependency array means this effect runs once on mount
 
   useEffect(() => {
     async function getAccounts() {
